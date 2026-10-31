@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Personal Finance Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .cards {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .card {
+            flex: 1;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px #ddd;
+        }
+
+        .income { color: green; }
+        .expense { color: red; }
+        .balance { color: blue; }
+		.container {
+		    max-width: 1100px;
+		    margin: auto;
+		}
+
+		h1 {
+		    color: #172554;
+		    font-size: 32px;
+		}
+
+		.card {
+		    border-radius: 15px;
+		    padding: 30px;
+		    transition: 0.3s;
+		}
+
+		.card:hover {
+		    transform: translateY(-5px);
+		}
+
+		form {
+		    background: white;
+		    padding: 25px;
+		    margin-top: 30px;
+		    border-radius: 15px;
+		    box-shadow: 0 2px 10px #ddd;
+		}
+
+		input, select {
+		    padding: 12px;
+		    margin: 8px;
+		    border: 1px solid #ccc;
+		    border-radius: 8px;
+		}
+
+		button {
+		    background: #2563eb;
+		    color: white;
+		    padding: 10px 18px;
+		    border: none;
+		    border-radius: 8px;
+		    cursor: pointer;
+		}
+
+		button:hover {
+		    background: #1d4ed8;
+		}
+
+		table {
+		    background: white;
+		    border-collapse: collapse;
+		    margin-top: 20px;
+		}
+
+		th {
+		    background: #1e293b;
+		    color: white;
+		}
+
+		td, th {
+		    padding: 12px;
+		    text-align: center;
+		}
+
+		tr:nth-child(even) {
+		    background: #f1f5f9;
+		}
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1>Personal Finance Tracker</h1>
+
+    <div class="cards">
+        <div class="card">
+            <h3>Total Income</h3>
+			<h2 class="income" th:text="'₹' + ${totalIncome}">₹25,000</h2>
+        </div>
+
+        <div class="card">
+            <h3>Total Expense</h3>
+			<h2 class="expense" th:text="'₹' + ${totalExpense}">₹500</h2>
+        </div>
+
+        <div class="card">
+            <h3>Balance</h3>
+			<h2 class="balance" th:text="'₹' + ${balance}">₹24,500</h2>
+        </div>
+    </div>
+
+</div>
+<h2>Add New Transaction</h2>
+
+<form id="transactionForm">
+
+    <input type="text" id="title"
+           placeholder="Transaction Title" required>
+
+    <input type="number" id="amount"
+           placeholder="Amount" required>
+
+    <select id="type" required>
+        <option value="INCOME">Income</option>
+        <option value="EXPENSE">Expense</option>
+    </select>
+
+    <input type="text" id="category"
+           placeholder="Category" required>
+
+    <input type="date" id="date" required>
+
+    <button type="submit">Add Transaction</button>
+
+</form>
+<script>
+document.getElementById("transactionForm")
+.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const transaction = {
+        title: document.getElementById("title").value,
+        amount: Number(document.getElementById("amount").value),
+        type: document.getElementById("type").value,
+        category: document.getElementById("category").value,
+        date: document.getElementById("date").value
+    };
+
+    try {
+        const response = await fetch("/api/transactions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(transaction)
+        });
+
+        if (response.ok) {
+            alert("Transaction Added Successfully!");
+            location.reload();
+        } else {
+            alert("Transaction Failed!");
+        }
+
+    } catch (error) {
+        alert("Server Error!");
+        console.error(error);
+    }
+});
+</script>
+<h2>Monthly Summary</h2>
+
+<div class="cards">
+
+    <div class="card">
+        <h3>Monthly Income</h3>
+        <h2 class="income"
+            th:text="'₹' + ${monthlyIncome}">₹0</h2>
+    </div>
+
+    <div class="card">
+        <h3>Monthly Expense</h3>
+        <h2 class="expense"
+            th:text="'₹' + ${monthlyExpense}">₹0</h2>
+    </div>
+
+</div>
+<h2>Category-wise Expense Report</h2>
+
+<table border="1" width="100%" cellpadding="10">
+
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Total Expense</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr th:each="item : ${categoryExpenses}">
+            <td th:text="${item.key}"></td>
+            <td th:text="'₹' + ${item.value}"></td>
+        </tr>
+    </tbody>
+
+</table>
+<h2>Transaction History</h2>
+
+<table border="1" width="100%" cellpadding="10">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Date</th>
+			<th>Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr th:each="t : ${transactions}">
+            <td th:text="${t.id}"></td>
+            <td th:text="${t.title}"></td>
+            <td th:text="${t.amount}"></td>
+            <td th:text="${t.type}"></td>
+            <td th:text="${t.category}"></td>
+            <td th:text="${t.date}"></td>
+			<td>
+			    <button type="button"
+			        th:onclick="'editTransaction(' + ${t.id} + ')'">
+			        Edit
+			    </button>
+
+			    <button type="button"
+			        th:onclick="'deleteTransaction(' + ${t.id} + ')'">
+			        Delete
+			    </button>
+			</td>
+        </tr>
+    </tbody>
+</table>
+<script>
+	async function editTransaction(id) {
+
+	    const response = await fetch("/api/transactions");
+	    const transactions = await response.json();
+
+	    const t = transactions.find(item => item.id === id);
+
+	    if (!t) {
+	        alert("Transaction not found!");
+	        return;
+	    }
+
+	    const title = prompt("Enter Title:", t.title);
+	    if (title === null) return;
+
+	    const amount = prompt("Enter Amount:", t.amount);
+	    if (amount === null) return;
+
+	    const type = prompt("Enter INCOME or EXPENSE:", t.type);
+	    if (type === null) return;
+
+	    const category = prompt("Enter Category:", t.category);
+	    if (category === null) return;
+
+	    const date = prompt("Enter Date (YYYY-MM-DD):", t.date);
+	    if (date === null) return;
+
+	    const result = await fetch("/api/transactions/" + id, {
+	        method: "PUT",
+	        headers: {
+	            "Content-Type": "application/json"
+	        },
+	        body: JSON.stringify({
+	            title: title,
+	            amount: Number(amount),
+	            type: type,
+	            category: category,
+	            date: date
+	        })
+	    });
+
+	    if (result.ok) {
+	        alert("Updated Successfully!");
+	        location.reload();
+	    } else {
+	        alert("Update Failed!");
+	    }
+	}
+async function deleteTransaction(id) {
+
+    if (!confirm("Are you sure you want to delete?")) {
+        return;
+    }
+
+    const response = await fetch("/api/transactions/" + id, {
+        method: "DELETE"
+    });
+
+    if (response.ok) {
+        alert("Transaction Deleted Successfully!");
+        location.reload();
+    } else {
+        alert("Delete Failed!");
+    }
+}
+</script>
+</body>
+</html>
